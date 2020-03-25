@@ -16,7 +16,6 @@ namespace Orikivo
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
-        private static readonly string _debugFormat = "[Debug] -- {0} --";
 
         /// <summary>
         /// Creates a new <see cref="LogService"/> with the specified parameters.
@@ -155,6 +154,8 @@ namespace Orikivo
 
         private string ExitFormat { get; set; }
 
+        private string DebugFormat { get; set; }
+
         private void SetConsoleConfig(ConsoleLayout config)
         {
             if (config != null)
@@ -186,10 +187,11 @@ namespace Orikivo
         {
             if (config != null)
             {
-                EntryFormat = config.EntryFormat;
-                ExceptionFormat = config.ExceptionFormat;
-                MessageFormat = config.MessageFormat;
-                ExitFormat = config.ExitFormat;
+                EntryFormat = config.EntryFormatting;
+                ExceptionFormat = config.ExceptionFormatting;
+                MessageFormat = config.MessageFormatting;
+                ExitFormat = config.ExitFormatting;
+                DebugFormat = config.DebugFormatting;
                 Aliases = config.Aliases;
                 Colors = config.Colors;
                 CanDebug = config.Debug;
@@ -208,7 +210,7 @@ namespace Orikivo
                 TextColor = textColor;
             }
             else
-                Console.WriteLine(string.Format(_debugFormat, "Temporary colors have already been set."));
+                Console.WriteLine(string.Format(DebugFormat, "Temporary colors have already been set."));
         }
 
         private void RestoreColors()
@@ -230,10 +232,10 @@ namespace Orikivo
         {
             if (CanDebug)
             {
-                WriteLine(string.Format(_debugFormat, content));
+                WriteLine(string.Format(DebugFormat, content));
 
                 if (Check.NotNull(OutputPath))
-                    WriteToFileAsync(string.Format(_debugFormat, content));
+                    WriteToFileAsync(string.Format(DebugFormat, content));
             }
             
         }

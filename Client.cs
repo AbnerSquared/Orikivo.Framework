@@ -42,23 +42,20 @@ namespace Orikivo
         /// </summary>
         public IServiceProvider Provider { get; }
 
-        private DiscordNetworkService Network => Provider.GetRequiredService<DiscordNetworkService>();
+        private DiscordConnectionService Network => Provider.GetRequiredService<DiscordConnectionService>();
         private LogService Logger => Provider.GetRequiredService<LogService>();
 
         // callback is the action to execute.
         /// <summary>
         /// Initializes the connection between Discord and the <see cref="Client"/>. Once this starts, methods executed outside of this process will be ignored.
         /// </summary>
-        /// <param name="prelaunch">The action to execute before the <see cref="Client"/> starts.</param>
-        public async Task StartAsync(Action<Client> prelaunch, CancellationToken cancelToken)
+        public async Task StartAsync(CancellationToken cancelToken)
         {
             if (_consoleConfig != null)
                 Logger.ConsoleConfig = _consoleConfig;
 
             if (_logConfig != null)
                 Logger.LogConfig = _logConfig;
-
-            prelaunch.Invoke(this);
 
             await Network.CompileAsync(_typeReaders, _modules);
             await Network.StartAsync();

@@ -28,7 +28,7 @@ namespace Orikivo
             }
         }
 
-        public static CommandServiceConfig DefaultServiceConfig
+        public static CommandServiceConfig DefaultCommandConfig
         {
             get
             {

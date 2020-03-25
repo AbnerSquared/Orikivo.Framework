@@ -151,7 +151,8 @@ namespace Orikivo
 
         private static bool IsValidFileName(string fileName)
         {
-            return !fileName.ContainsAny(Path.GetInvalidFileNameChars());
+            var invalid = Path.GetInvalidFileNameChars();
+            return !fileName.Any(x => invalid.Contains(x));
         }
 
         private static string GetCurrentDirectory()

@@ -12,7 +12,7 @@ namespace Orikivo
     /// <summary>
     /// Represents a service that handles a network connection to Discord.
     /// </summary>
-    public class DiscordNetworkService
+    public class DiscordConnectionService
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
@@ -21,9 +21,9 @@ namespace Orikivo
         private readonly LogService _console;
 
         /// <summary>
-        /// Initializes a new <see cref="DiscordNetworkService"/>.
+        /// Initializes a new <see cref="DiscordConnectionService"/>.
         /// </summary>
-        public DiscordNetworkService(DiscordSocketClient client, CommandService commandService,
+        public DiscordConnectionService(DiscordSocketClient client, CommandService commandService,
             IServiceProvider provider, IConfigurationRoot config, LogService console)
         {
             _client = client;
@@ -37,7 +37,7 @@ namespace Orikivo
         private bool _compiled;
 
         /// <summary>
-        /// Compiles the <see cref="DiscordNetworkService"/> by adding all specified type-readers and modules.
+        /// Compiles the <see cref="DiscordConnectionService"/> by adding all specified type-readers and modules.
         /// </summary>
         internal async Task CompileAsync(Dictionary<Type, TypeReader> typeReaders, List<Type> modules)
         {

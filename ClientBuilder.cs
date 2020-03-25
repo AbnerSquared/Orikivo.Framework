@@ -32,8 +32,8 @@ namespace Orikivo
             // These services are required with every Discord bot and is always implemented.
             Services
                 .AddSingleton(new DiscordSocketClient(DiscordConfig.DefaultSocketConfig))
-                .AddSingleton(new CommandService(DiscordConfig.DefaultServiceConfig))
-                .AddSingleton<DiscordNetworkService>()
+                .AddSingleton(new CommandService(DiscordConfig.DefaultCommandConfig))
+                .AddSingleton<DiscordConnectionService>()
                 .AddSingleton<LogService>();
         }
 
@@ -99,7 +99,10 @@ namespace Orikivo
         /// Establishes a <see cref="TypeReader"/> for the specified type.
         /// </summary>
         public void AddTypeReader(Type type, TypeReader reader)
-            => TypeReaders.AddOrUpdate(type, reader);
+        {
+            if (!TypeReaders.TryAdd(type, reader))
+                TypeReaders[type] = reader;
+        }
 
         /// <summary>
         /// Removes the <see cref="TypeReader"/> established for the specified type.
