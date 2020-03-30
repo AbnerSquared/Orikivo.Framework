@@ -7,31 +7,17 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Orikivo
+namespace Orikivo.Framework
 {
-    /// <summary>
-    /// A service that controls all log-related events.
-    /// </summary>
     public class LogService
     {
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commandService;
 
-        /// <summary>
-        /// Creates a new <see cref="LogService"/> with the specified parameters.
-        /// </summary>
-        /// <param name="client">The <see cref="BaseSocketClient"/> to link with the new <see cref="LogService"/>.</param>
-        /// <param name="commandService">The <see cref="CommandService"/> to link with the new <see cref="LogService"/>.</param>
-        /// <param name="consoleConfig">The configuration used to build the console-side values for the new <see cref="LogService"/>.</param>
-        /// <param name="logConfig">The configuration used to handle event-side values for the new <see cref="LogService"/>.</param>
-        public LogService(DiscordSocketClient client, CommandService commandService,
-            ConsoleLayout consoleConfig = null, LogConfig logConfig = null)
+        public LogService(DiscordSocketClient client, CommandService commandService)
         {
             _client = client;
             _commandService = commandService;
-
-            SetLogConfig(logConfig ?? LogConfig.Default);
-            SetConsoleConfig(consoleConfig);
 
             _client.Log += LogAsync;
             _commandService.Log += LogAsync;
@@ -40,7 +26,7 @@ namespace Orikivo
         }
         
         /// <summary>
-        /// The <see cref="Orikivo.ConsoleLayout"/> to set for the current <see cref="LogService"/>.
+        /// The <see cref="ConsoleLayout"/> to set for the current <see cref="LogService"/>.
         /// </summary>
         public ConsoleLayout ConsoleConfig { set => SetConsoleConfig(value); }
 
@@ -106,7 +92,7 @@ namespace Orikivo
             private set
             {
 
-                if (Check.NotNull(value))
+                if (!string.IsNullOrWhiteSpace(value))
                     Console.Title = value;
 
                 Debug("ConsoleConfig.SetTitle");
@@ -160,8 +146,8 @@ namespace Orikivo
         {
             if (config != null)
             {
-                if (config.TextColor.HasValue)
-                    TextColor = config.TextColor.Value;
+                if (config.ForegroundColor.HasValue)
+                    TextColor = config.ForegroundColor.Value;
 
                 if (config.BackgroundColor.HasValue)
                     BackgroundColor = config.BackgroundColor.Value;
@@ -177,7 +163,7 @@ namespace Orikivo
                 Debug("ConsoleConfig.SetWindow");
 
                 Title = config.Title;
-                Console.CursorVisible = config.ShowCursor;
+                Console.CursorVisible = config.CursorVisible;
             }
 
             Console.WriteLine("ConsoleConfig.End");
@@ -234,8 +220,8 @@ namespace Orikivo
             {
                 WriteLine(string.Format(DebugFormat, content));
 
-                if (Check.NotNull(OutputPath))
-                    WriteToFileAsync(string.Format(DebugFormat, content));
+                if (!string.IsNullOrWhiteSpace(OutputPath))
+                    WriteToFileAsync(string.Format(DebugFormat, content)).ConfigureAwait(false).GetAwaiter().GetResult();
             }
             
         }
@@ -254,8 +240,8 @@ namespace Orikivo
                 RestoreColors();
             }
 
-            if (Check.NotNull(OutputPath))
-                WriteToFileAsync(message);
+            if (!string.IsNullOrWhiteSpace(OutputPath))
+                WriteToFileAsync(message).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -263,37 +249,36 @@ namespace Orikivo
         /// </summary>
         public Task LogAsync(LogMessage log)
         {
-            if (Check.NotNull(Colors?[log.Severity]) && Colors[log.Severity] != (BackgroundColor, TextColor))
+            if (Colors?[log.Severity] != null && Colors[log.Severity] != (BackgroundColor, TextColor))
                 SetTempColors(Colors[log.Severity]?.BackgroundColor, Colors[log.Severity]?.TextColor);
 
             StringBuilder value = new StringBuilder();
 
-            if (Check.NotNull(EntryFormat))
+            if (!string.IsNullOrWhiteSpace(EntryFormat))
                 value.AppendLine(EntryFormat
-                    //.Replace(Aliases[LogAlias.Name], OriGlobal.ClientName)
-                    //.Replace(Aliases[LogAlias.ClientVersion], OriGlobal.ClientVersion)
+                    .Replace(Aliases[LogAlias.Name], _client.CurrentUser.Username)
                     .Replace(Aliases[LogAlias.Date], DateTime.UtcNow.ToString())
                     .Replace(Aliases[LogAlias.LogSeverity], log.Severity.ToString())
                     .Replace(Aliases[LogAlias.LogSource], log.Source));
 
-            if (Check.NotNull(ExceptionFormat) && Check.NotNull(log.Exception))
+            if (!string.IsNullOrWhiteSpace(ExceptionFormat) && log.Exception != null)
                 value.AppendLine(ExceptionFormat
                     .Replace(Aliases[LogAlias.Exception], log.Exception?.ToString())
                     .Replace(Aliases[LogAlias.ExceptionType], log.Exception?.GetType().Name)
                     .Replace(Aliases[LogAlias.ExceptionMessage], log.Exception?.Message));
 
-            if (Check.NotNull(MessageFormat) && Check.NotNull(log.Message))
+            if (!string.IsNullOrWhiteSpace(MessageFormat) && !string.IsNullOrWhiteSpace(log.Message))
                 value.AppendLine(MessageFormat
                     .Replace(Aliases[LogAlias.LogMessage], log.Message));
 
-            if (Check.NotNull(ExitFormat))
+            if (!string.IsNullOrWhiteSpace(ExitFormat))
                 value.Append(ExitFormat);
 
             return Task.Run(async () =>
             {
                 await Console.Out.WriteLineAsync(value.ToString());
 
-                if (Check.NotNull(OutputPath))
+                if (!string.IsNullOrWhiteSpace(OutputPath))
                     await WriteToFileAsync(value.ToString());
 
                 RestoreColors();
@@ -302,11 +287,11 @@ namespace Orikivo
 
         private async Task WriteToFileAsync(string content)
         {
-            if (Check.NotNull(OutputPath))
+            if (!string.IsNullOrWhiteSpace(OutputPath))
             {
                 string directory = Directory.CreateDirectory(OutputPath).FullName;
                 string path = $"{directory}{DateTime.UtcNow.ToString("MM-dd-yyyy")}_log.txt";
-                // TODO: Implement logging
+
                 using (StreamWriter writer = File.AppendText(path))
                     await writer.WriteLineAsync(content);
             }
