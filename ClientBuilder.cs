@@ -57,13 +57,15 @@ namespace Orikivo.Framework
             Config.SetBasePath(directory);
         }
 
-        public void AddTypeReader<T>(TypeReader reader)
+        public ClientBuilder AddTypeReader<T>(TypeReader reader)
             => AddTypeReader(typeof(T), reader);
 
-        public void AddTypeReader(Type type, TypeReader reader)
+        public ClientBuilder AddTypeReader(Type type, TypeReader reader)
         {
             if (!TypeReaders.TryAdd(type, reader))
                 TypeReaders[type] = reader;
+
+            return this;
         }
 
         public void RemoveTypeReader<T>()
@@ -75,11 +77,13 @@ namespace Orikivo.Framework
                 TypeReaders.Remove(type);
         }
 
-        public void AddModule<T>()
+        public ClientBuilder AddModule<T>()
             where T : class
         {
             if (!Modules.Contains(typeof(T)))
                 Modules.Add(typeof(T));
+
+            return this;
         }
 
         public void RemoveModule<T>()
@@ -91,7 +95,6 @@ namespace Orikivo.Framework
 
         public Client Build()
         {
-            new DiscordShardedClient(SocketConfig ?? DiscordConfig.DefaultSocketConfig);
             Services
                 .AddSingleton(new DiscordSocketClient(SocketConfig ?? DiscordConfig.DefaultSocketConfig))
                 .AddSingleton(new CommandService(CommandConfig ?? DiscordConfig.DefaultCommandConfig))
