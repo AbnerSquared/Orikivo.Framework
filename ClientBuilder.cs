@@ -26,7 +26,7 @@ namespace Orikivo.Framework
 
             if (!string.IsNullOrWhiteSpace(configPath))
                 SetConfigPath(configPath);
-                
+
             Services = new ServiceCollection();
         }
 
@@ -104,7 +104,7 @@ namespace Orikivo.Framework
                 .AddSingleton(new CommandService(CommandConfig))
                 .AddSingleton(Config.AddJsonFile(!string.IsNullOrWhiteSpace(_configPath) ? _configPath : CONFIG_FILE_NAME).Build())
                 .AddSingleton<ConnectionService>();
-                
+
             return new Client(Services.BuildServiceProvider(), TypeReaders, Modules);
         }
     }
